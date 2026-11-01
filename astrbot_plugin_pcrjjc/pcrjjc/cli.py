@@ -385,8 +385,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data-dir", help="数据目录（默认取 PCRJJC_DATA_DIR 或包内 data）")
     parser.add_argument("--version", action="version", version=f"pcrjjc {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
+    # 子命令后面也能写 --data-dir（很多人习惯写在最后）
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--data-dir", default=None, help="数据目录（与全局同名，写在子命令后也行）")
 
-    p = sub.add_parser("arena", help="按角色名查作业")
+    p = sub.add_parser("arena", parents=[common], help="按角色名查作业")
     p.add_argument("--names", "-n", default="", help="逗号/空格分隔的角色名，如 布丁,克总")
     p.add_argument("--ids", default="", help="直接给 6 位 id（逗号分隔）")
     p.add_argument("--region", default=os.environ.get("PCRJJC_REGION", "1"), help="1=日服 2=台服 3=国服")
@@ -396,7 +399,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_arena)
 
-    p = sub.add_parser("recognize", help="从截图识别防守阵容")
+    p = sub.add_parser("recognize", parents=[common], help="从截图识别防守阵容")
     p.add_argument("--image", "-i", required=True)
     p.add_argument("--avatars", help="头像目录（默认 <data>/avatars）")
     p.add_argument("--threshold", type=float, default=0.70)
@@ -404,7 +407,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_recognize)
 
-    p = sub.add_parser("avatars", help="批量下载角色头像")
+    p = sub.add_parser("avatars", parents=[common], help="批量下载角色头像")
     p.add_argument("--dest", help="目标目录（默认 <data>/avatars）")
     p.add_argument("--only", help="只下这些角色（名字或 id，逗号分隔）")
     p.add_argument("--jobs", type=int, default=6)
@@ -413,16 +416,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_avatars)
 
-    p = sub.add_parser("refresh", help="从 pcrdfans 刷新角色表")
+    p = sub.add_parser("refresh", parents=[common], help="从 pcrdfans 刷新角色表")
     p.add_argument("--timeout", default="25")
     p.add_argument("--url", default="")
     p.set_defaults(func=cmd_refresh)
 
-    p = sub.add_parser("selftest", help="离线自检（CI 用）")
+    p = sub.add_parser("selftest", parents=[common], help="离线自检（CI 用）")
     p.add_argument("--offline", action="store_true", help="不联网（当前实现本来就离线）")
     p.set_defaults(func=cmd_selftest)
 
-    p = sub.add_parser("doctor", help="看环境：依赖、字体、数据")
+    p = sub.add_parser("doctor", parents=[common], help="看环境：依赖、字体、数据")
     p.set_defaults(func=cmd_doctor)
     return parser
 

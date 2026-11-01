@@ -49,3 +49,8 @@ def test_version_flag(capsys):
     except SystemExit as exc:  # argparse 正常退出
         assert exc.code == 0
     assert "pcrjjc" in capsys.readouterr().out
+
+
+def test_data_dir_after_subcommand(data_dir: Path, capsys):
+    rc = cli.main(["selftest", "--data-dir", str(data_dir)])
+    assert rc == 0, capsys.readouterr().out
