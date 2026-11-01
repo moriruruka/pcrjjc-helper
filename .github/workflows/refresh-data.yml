@@ -1,4 +1,4 @@
-name: refresh-data
+﻿name: refresh-data
 
 on:
   schedule:
@@ -23,6 +23,9 @@ jobs:
       - name: 有变化就开 PR
         uses: peter-evans/create-pull-request@v6
         with:
+          # 用仓库主自己的身份，避免出现 github-actions[bot] 贡献者
+          author: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
+          committer: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
           commit-message: "chore(data): 刷新角色表"
           title: "chore(data): 刷新角色表"
           body: |
