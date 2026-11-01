@@ -81,6 +81,7 @@ python scripts/browser_bridge.py           # 之后以 headless 模式常驻，�
 - 角色表 `characters.json`（353 个角色）随包发布，不含账号信息。
 - 头像不随仓库分发：可通过 `pcrjjc avatars` 从 CDN 下载，或解压 [Release](../../releases) 中的 `avatars-v1.zip` 到数据目录。
 - 角色名与头像素材版权归 Cygames, Inc.；仓库仅提供工具。
+- 本地更新角色表：`python scripts/update_dataset.py --commit --push`（提交身份固定为维护者）。
 
 详见 [docs/DATA.md](docs/DATA.md)。
 

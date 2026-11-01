@@ -1,4 +1,4 @@
-# 测试
+﻿# 测试
 
 ## 本地运行
 
@@ -57,7 +57,7 @@ os: [ubuntu-latest, windows-latest]
 - `install-smoke`：在干净虚拟环境中安装 wheel 并执行 `pcrjjc selftest`；
 - `offline-e2e`：使用合成素材完成识别与卡片渲染，并用离线响应验证作业解析。
 
-`Data refresh` 工作流每周执行一次外部接口巡检，失败不影响主分支状态。
+`Data refresh` 工作流每周执行一次抓取与外部接口巡检，失败不影响主分支状态；需要人工核对时，可在本地运行 `scripts/update_dataset.py`。
 
 ## 编写测试的约定
 

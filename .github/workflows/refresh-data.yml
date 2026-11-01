@@ -1,12 +1,14 @@
-name: Data refresh
+﻿name: Data refresh
 
 run-name: data-refresh · ${{ github.ref_name }}
 
 # 周期性核对角色表：抓取 pcrdfans /units，合并本地别称，有差异时创建 PR 供审阅。
 # 提交身份固定为仓库维护者。
 on:
-  # 仅手动触发：GitHub 会把 cron 触发的运行记录为 github-actions[bot]，
-  # 本仓库要求所有提交与发布记录只归属维护者。
+  # 每周一 02:00 UTC 自动刷新；提交身份固定为维护者（见下方 author/committer）。
+  # 需要立刻更新时，可在本地运行 python scripts/update_dataset.py --commit --push。
+  schedule:
+    - cron: "0 2 * * 1"
   workflow_dispatch:
 
 permissions:

@@ -85,13 +85,38 @@ AstrBot 插件里优先用 AstrBot 的插件数据目录（`data/plugin_data/pcr
 
 上述“不入库”的文件都已写进 `.gitignore`。
 
-## 刷新数据
+## 更新角色表
+
+有三条路径，按使用场景选择。
+
+### 1. 插件运行期自动更新（默认）
+
+插件内 `auto_update_days`（默认 7 天）到期后自行抓取 `/units`、合并 wiki 中文名并按需补头像。
+这是插件自身的行为，与仓库 CI 无关。
+
+### 2. 本地手动更新（发布前推荐）
+
+```bash
+python scripts/update_dataset.py                  # 只刷新，写入 characters.json
+python scripts/update_dataset.py --commit         # 刷新并提交
+python scripts/update_dataset.py --commit --push  # 刷新、提交并推送
+python scripts/update_dataset.py --avatars        # 顺带下载头像到数据目录
+```
+
+提交的作者与提交者固定为 `Aria_Luna <80839392+moriruruka@users.noreply.github.com>`，
+不受本机 `git config` 影响。
+
+### 3. GitHub Actions 周期刷新
+
+`Data refresh` 工作流每周一 02:00 UTC 抓取一次，与 `aliases_extra.json` 合并，
+存在差异时创建 PR（不直接修改主分支），由维护者审阅后合并。该工作流的提交身份同样固定为维护者。
+
+### 手工命令
 
 ```bash
 pcrjjc refresh            # 抓 pcrdfans /units，重建 characters.json
 pcrjjc refresh --url ...  # 换镜像/代理
 ```
 
-刷新会保留 `aliases_extra.json` 里的补充别称。AstrBot 插件里对应 `pcr 更新`，也会按 `auto_update_days` 自动跑。
+刷新会保留 `aliases_extra.json` 里的补充别称。AstrBot 插件里对应 `pcr 更新`。
 
-GitHub Actions 每周一执行一次 `refresh`，存在差异时创建 PR（不直接修改主分支），由维护者审阅后合并。
