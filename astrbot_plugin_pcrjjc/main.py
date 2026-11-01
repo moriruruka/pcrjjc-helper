@@ -1,4 +1,4 @@
-﻿"""PCRBot：公主连结 Re:Dive 竞技场作业查询。
+"""PCRBot：公主连结 Re:Dive 竞技场作业查询。
 
 文字：/作业 布丁 克总
 图片：/作业 + 竞技场截图，或直接发图（image_auto）
@@ -80,7 +80,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "auto_update_days": 7,
     "request_timeout": 15,
     "allow_group": True,
+    "show_likes": True,
+    "show_time": True,
+    "use_ai_names": True,
+    "browser_endpoint": "",
     "dialog_timeout_min": 2,
+    "dialog_step_timeout_min": 2,
+    "dialog_max_rounds": 6,
+    "dialog_active_minutes": 10,
 }
 
 VALID_SORT_MODES = {"ratio", "time", "relevance"}

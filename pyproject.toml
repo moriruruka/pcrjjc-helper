@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pcrjjc-helper"
-version = "0.1.0"
+dynamic = ["version"]
 description = "公主连结竞技场作业查询核心库：截图识别防守阵容、按角色名查作业、渲染作业卡片"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,6 +39,9 @@ pcrjjc = "pcrjjc.cli:main"
 [project.urls]
 Homepage = "https://github.com/moriruruka/pcrjjc-helper"
 Issues = "https://github.com/moriruruka/pcrjjc-helper/issues"
+
+[tool.hatch.version]
+path = "astrbot_plugin_pcrjjc/pcrjjc/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["astrbot_plugin_pcrjjc/pcrjjc"]

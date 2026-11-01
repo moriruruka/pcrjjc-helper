@@ -1,4 +1,4 @@
-﻿name: Release build
+name: Release build
 
 run-name: release-build · ${{ github.ref_name }}
 

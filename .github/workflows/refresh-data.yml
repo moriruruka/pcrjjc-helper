@@ -1,4 +1,4 @@
-﻿name: Data refresh
+name: Data refresh
 
 run-name: data-refresh · ${{ github.ref_name }}
 

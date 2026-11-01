@@ -33,6 +33,8 @@ jobs:
         run: pip install ruff
       - name: Run ruff
         run: ruff check .
+      - name: Compile all sources
+        run: python -m compileall -q astrbot_plugin_pcrjjc
 
   test:
     name: test (${{ matrix.os }}, py${{ matrix.python }})
