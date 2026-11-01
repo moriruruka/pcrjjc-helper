@@ -430,6 +430,13 @@ def merge_previous_names(
     return restored
 
 
+def save_characters(path: str | Path, payload: Mapping[str, Any]) -> dict[str, Any]:
+    """原子写入 characters.json（先写 .tmp 再替换），返回写进去的内容。"""
+
+    _write_json(path, payload)
+    return dict(payload)
+
+
 def load_characters(path: str | Path) -> dict[str, Any] | None:
     """读取 characters.json；文件缺失或损坏时返回 None。"""
 

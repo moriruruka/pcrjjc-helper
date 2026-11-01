@@ -1,4 +1,4 @@
-"""PCRBot：公主连结 Re:Dive 竞技场作业查询。
+﻿"""PCRBot：公主连结 Re:Dive 竞技场作业查询。
 
 文字：/作业 布丁 克总
 图片：/作业 + 竞技场截图，或直接发图（image_auto）
@@ -644,17 +644,16 @@ class PCRBot(Star):
         units = pcr_data.load_units_cache(self.units_path)
         if units is not None and not self._characters_current(payload):
             previous_payload = payload
-            payload = pcr_data.write_characters_from_units(
-                self.characters_path,
+            payload = pcr_data.build_characters_from_units(
                 units,
                 aliases_extra=pcr_data.load_aliases_extra(self.aliases_extra_path),
                 updated_at=_now_text(),
             )
-            if payload is not None and previous_payload:
+            if previous_payload:
                 restored = pcr_data.merge_previous_names(payload, previous_payload)
                 if restored:
-                    pcr_data._write_json(self.characters_path, payload)  # noqa: SLF001
                     logger.info("PCRBot 初始化时保留了 %d 个旧版中文名", restored)
+            pcr_data.save_characters(self.characters_path, payload)
         elif payload is None:
             if seed:
                 payload = pcr_data.write_characters(self.characters_path, _now_text())
@@ -997,17 +996,16 @@ class PCRBot(Star):
                         + "）"
                     )
                 previous_payload = pcr_data.load_characters(self.characters_path)
-                characters = pcr_data.write_characters_from_units(
-                    self.characters_path,
+                characters = pcr_data.build_characters_from_units(
                     units_payload,
                     aliases_extra=pcr_data.load_aliases_extra(self.aliases_extra_path),
                     updated_at=_now_text(),
                 )
-                if characters is not None and previous_payload:
+                if previous_payload:
                     restored = pcr_data.merge_previous_names(characters, previous_payload)
                     if restored:
-                        pcr_data._write_json(self.characters_path, characters)  # noqa: SLF001
                         logger.info("PCRBot 更新时保留了 %d 个旧版中文名", restored)
+                pcr_data.save_characters(self.characters_path, characters)
             except Exception as exc:  # noqa: BLE001
                 units_error = f"角色数据更新失败：{_short(exc, 140)}"
                 logger.warning(f"PCRBot {units_error}")
@@ -1048,7 +1046,7 @@ class PCRBot(Star):
                     if ai_filled:
                         wiki_note += f"，AI 补名 {ai_filled} 个"
                     removed = self._apply_alias_removals(characters)
-                    pcr_data._write_json(self.characters_path, characters)
+                    pcr_data.save_characters(self.characters_path, characters)
                     wiki_note = f"biligame 补中文名/外号 {changed} 个"
                     if removed:
                         wiki_note += f"，清理别称 {removed} 条"
