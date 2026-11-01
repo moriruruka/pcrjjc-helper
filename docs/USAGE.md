@@ -122,6 +122,26 @@ pcrjjc doctor                           # 看依赖 / 字体 / 数据
 | `PCRJJC_AUTH_KEY` | 作业网 API key（有就用直连接口） |
 | `PCRJJC_BROWSER_ENDPOINT` | 本机浏览器转发服务地址 |
 
+## 查询慢怎么办（三档方案）
+
+实测：配置了本机浏览器服务时，一条查询 **3 秒**出卡片；首次识别截图会额外多花 1–2 分钟建头像特征缓存，之后就快了。
+
+1. **有作业网 API key** → 面板填 `auth_key`，走直连接口，通常 1–3 秒。
+2. **起本机浏览器服务**（推荐，无需 key）：
+   ```bash
+   pip install playwright
+   python -m playwright install msedge        # 或用系统自带 Edge
+   python scripts/browser_bridge.py --login   # 首次：弹一次窗口登录作业网，登录完自动关
+   python scripts/browser_bridge.py           # 之后：headless 常驻，窗口不可见
+   ```
+   然后把面板里的 `browser_endpoint` 填成 `http://127.0.0.1:6191`。
+   它做的事是「用真实浏览器打开作业网自己的页面，把页面发出的查询响应截下来」，签名与 Cookie 都由浏览器处理，所以不会被当成脚本。
+3. **什么都不配**：`browser_endpoint` 留空、`auth_key` 留空 → 只走匿名接口，失败就提示「稍后再查」。最稳但最慢（每次要等接口超时）。
+
+要点：
+- 浏览器服务**默认 headless**，不会弹空白窗口；只有 `--login` 那一次会开窗口，登录完成后自动关闭。
+- 首次截图识别会建缓存（`avatar_prints.json`），773 张头像约 1–2 分钟，只付一次。
+
 ## 关于作业网风控
 
 pcrdfans 的匿名接口有时会返回 `103 / 601`（未登录或触发风控）。两条路：

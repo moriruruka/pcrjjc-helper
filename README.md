@@ -48,6 +48,18 @@ pcrjjc arena -n 布丁,克总 --json   # 先看数据结构，卡片由适配器
 
 AstrBot 用户看 [docs/INSTALL.md](docs/INSTALL.md)，里面有插件目录、依赖、头像下载与首次自检的完整步骤。
 
+### 查询慢？
+
+配了本机浏览器服务后实测 **3 秒**出卡片；没有 key 又没有浏览器服务时，单次要等匿名接口超时。
+
+```bash
+pip install playwright && python -m playwright install msedge
+python scripts/browser_bridge.py --login   # 首次登录，窗口只弹这一次
+python scripts/browser_bridge.py           # 之后 headless 常驻，无窗口
+```
+
+然后在插件面板把 `browser_endpoint` 填成 `http://127.0.0.1:6191`。详见 [docs/USAGE.md](docs/USAGE.md#查询慢怎么办三档方案)。
+
 ## 能做什么
 
 - **文字查作业**：`布丁`、`克总`、`宫紫`（错字也能认）、`107101`、日文名、英文名都能解析。
