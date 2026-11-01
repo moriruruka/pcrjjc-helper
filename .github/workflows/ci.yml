@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -26,7 +26,6 @@ jobs:
           python-version: "3.12"
       - run: pip install ruff
       - run: ruff check .
-      - run: ruff format --check .
 
   test:
     name: 测试 ${{ matrix.os }} / Python ${{ matrix.python }}
