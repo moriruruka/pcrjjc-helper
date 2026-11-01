@@ -1,15 +1,14 @@
-name: release
+name: Release build
 
+# 只构建发行包，不创建 Release。
+# Release 由维护者用本人账号手动创建（网页或 API），这样发布记录的作者是维护者本人，
+# 不会出现 github-actions[bot] 的署名。
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
+    name: 构建发行包
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,27 +16,18 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install build twine
-      - run: python -m build
-      - run: twine check dist/*
-      - name: 附加插件目录 zip（给不想用 pip 的人直接下载）
+      - name: 构建 wheel 与 sdist
+        run: python -m build
+      - name: 检查发行包
+        run: twine check dist/*
+      - name: 打包插件目录
         run: |
           cd astrbot_plugin_pcrjjc && zip -r ../pcrjjc-astrbot-plugin.zip . -x "*/__pycache__/*"
-      - uses: softprops/action-gh-release@v2
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
         with:
-          files: |
+          name: release-artifacts
+          path: |
             dist/*.whl
             dist/*.tar.gz
             pcrjjc-astrbot-plugin.zip
-          generate_release_notes: true
-          body: |
-            ## 安装
-
-            ```bash
-            pip install pcrjjc-helper[full]
-            pcrjjc selftest
-            pcrjjc avatars
-            ```
-
-            AstrBot 用户：下载 `pcrjjc-astrbot-plugin.zip` 解压到 `data/plugins/astrbot_plugin_pcrjjc`，再装 `requirements.txt`。
-
-            头像体积较大（约 15 MB），默认不随 Release 提供；用 `pcrjjc avatars` 从 CDN 拉取即可。

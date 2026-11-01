@@ -1,6 +1,6 @@
 # 排障
 
-先跑这两条，多数问题能直接定位：
+先执行以下两条命令，可定位多数问题：
 
 ```bash
 pcrjjc doctor
@@ -41,7 +41,7 @@ pcrjjc refresh
 # 头像缺失：重新下
 pcrjjc avatars
 
-# 缓存类文件可以直接删，会自动重建
+# 缓存类文件可删除，程序会自动重建
 rm <data>/arena_cache.json <data>/avatar_prints.json <data>/meta.json
 ```
 

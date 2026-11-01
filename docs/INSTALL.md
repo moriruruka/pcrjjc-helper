@@ -37,7 +37,7 @@ git clone https://github.com/moriruruka/pcrjjc-helper.git _pcrjjc_tmp
 
 把 `_pcrjjc_tmp/astrbot_plugin_pcrjjc` 整个目录复制到 `<AstrBot>/data/plugins/astrbot_plugin_pcrjjc`，然后删掉 `_pcrjjc_tmp`。
 
-> 为什么不能直接 clone 成插件目录：AstrBot 只把「目录名以 `astrbot_plugin_` 开头」的文件夹当成插件，而仓库顶层还要放 `docs/`、`tests/`、`pyproject.toml`。
+> 不能直接克隆为插件目录的原因：AstrBot 仅将目录名以 `astrbot_plugin_` 开头的文件夹识别为插件，而仓库顶层还需保留 `docs/`、`tests/`、`pyproject.toml`。。
 
 ### 2. 装依赖
 
@@ -74,7 +74,7 @@ Windows 上 AstrBot 常见路径是 `<AstrBot>/.venv/Scripts/python.exe`。装�
 
 ### 5. 数据目录放哪
 
-插件优先用 AstrBot 的插件数据目录（`data/plugin_data/pcrjjc`）。想换位置，设置环境变量：
+插件默认使用 AstrBot 的插件数据目录（`data/plugin_data/pcrjjc`）；如需更换位置，设置环境变量：
 
 ```bash
 PCRJJC_DATA_DIR=D:\pcrjjc-data        # Windows
@@ -109,4 +109,4 @@ docker run --rm -v pcrjjc-data:/data pcrjjc refresh
 | `.[full]` | ~45 MB | 以上 + 截图识阵容 |
 | 头像 | ~15 MB | 卡片上贴真实头像（不装也能用） |
 
-**没有视觉大模型**：截图识别用的是 OpenCV 边缘检测 + 头像脸带的归一化互相关，纯 CPU、纯本地，不需要下载任何模型。
+**不依赖视觉大模型**：截图识别采用 OpenCV 边缘检测与头像脸带的归一化互相关，纯 CPU、本地运行，无需下载模型。

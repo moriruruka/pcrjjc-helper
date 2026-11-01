@@ -54,7 +54,7 @@ pcrjjc avatars --only 布丁,克总
 # 3) 从 Release 的 avatars-v1.zip 解压到 <data>/avatars
 ```
 
-- 没有头像也能用：卡片会给每个位置画占位块，识别功能会自动关闭并提示。
+- 缺少头像时仍可使用：卡片以占位块代替头像，识别功能会关闭并给出提示。
 - `pcrjjc avatars --dry-run` 可以先看缺多少张，不真的下载。
 
 ## 数据目录
@@ -94,4 +94,4 @@ pcrjjc refresh --url ...  # 换镜像/代理
 
 刷新会保留 `aliases_extra.json` 里的补充别称。AstrBot 插件里对应 `pcr 更新`，也会按 `auto_update_days` 自动跑。
 
-GitHub Actions 每周一跑一次 `refresh`，有差异就开 PR（不直接改主分支），人工看一眼再合并。
+GitHub Actions 每周一执行一次 `refresh`，存在差异时创建 PR（不直接修改主分支），由维护者审阅后合并。

@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -17,6 +17,7 @@ env:
 
 jobs:
   lint:
+    name: 静态检查
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +26,10 @@ jobs:
           python-version: "3.12"
       - run: pip install ruff
       - run: ruff check .
-      - run: ruff format --check . || true
+      - run: ruff format --check .
 
   test:
+    name: 测试 ${{ matrix.os }} / Python ${{ matrix.python }}
     strategy:
       fail-fast: false
       matrix:
@@ -41,35 +43,38 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: python -m pip install -e ".[full,dev]"
-      - run: python -m pytest -q
-      - name: selftest (CLI)
+      - name: 运行单元测试
+        run: python -m pytest -q
+      - name: 命令行自检
         run: python -m pcrjjc selftest
 
   data:
+    name: 校验角色表
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: 校验角色表
+      - name: 校验 characters.json
         run: |
           python - <<'PY'
           import json, sys
           from pathlib import Path
           payload = json.loads(Path("astrbot_plugin_pcrjjc/pcrjjc/data/characters.json").read_text(encoding="utf-8"))
           chars = payload.get("characters") or []
-          assert len(chars) > 300, f"角色太少：{len(chars)}"
+          assert len(chars) > 300, f"角色数量异常：{len(chars)}"
           ids = [c["id"] for c in chars]
-          assert len(set(ids)) == len(ids), "id 有重复"
-          assert all(isinstance(i, int) and 100000 <= i <= 999999 for i in ids), "id 不是 6 位"
+          assert len(set(ids)) == len(ids), "存在重复 id"
+          assert all(isinstance(i, int) and 100000 <= i <= 999999 for i in ids), "id 不是 6 位整数"
           for c in chars:
-              assert (c.get("name") or c.get("name_jp") or "").strip(), f"角色没名字：{c}"
-              assert isinstance(c.get("aliases") or [], list)
-          print(f"OK: {len(chars)} 个角色")
+              assert (c.get("name") or c.get("name_jp") or "").strip(), f"角色缺少名字：{c}"
+              assert isinstance(c.get("aliases") or [], list), "aliases 必须是列表"
+          print(f"OK：{len(chars)} 个角色")
           PY
 
   build:
+    name: 构建发行包
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +90,7 @@ jobs:
           path: dist/*
 
   install-smoke:
+    name: 安装冒烟测试
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -95,7 +101,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: 干净环境装 wheel 并自检
+      - name: 在干净虚拟环境中安装并自检
         run: |
           python -m venv /tmp/venv
           /tmp/venv/bin/pip install dist/*.whl "numpy>=1.24" "opencv-python-headless>=4.8"
@@ -103,6 +109,7 @@ jobs:
           /tmp/venv/bin/pcrjjc doctor
 
   offline-e2e:
+    name: 离线端到端测试
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,14 +117,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[full]"
-      - name: 合成素材 → 识别 → 卡片
+      - name: 合成素材的识别与卡片渲染
         run: |
           python scripts/make_fixtures.py --out /tmp/fx
           python -m pcrjjc recognize -i /tmp/fx/screenshot.png --avatars /tmp/fx/avatars
-      - name: 假后端下查一次作业（不发真实网络请求）
+      - name: 离线响应解析
         run: |
           python - <<'PY'
-          import asyncio, json
+          import json
           from pathlib import Path
           from pcrjjc import arena_api
 

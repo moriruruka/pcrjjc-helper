@@ -1,5 +1,7 @@
-﻿name: refresh-data
+name: Data refresh
 
+# 周期性核对角色表：抓取 pcrdfans /units，合并本地别称，有差异时开出 PR 供审阅。
+# 提交身份固定为仓库维护者，避免出现 github-actions[bot] 署名。
 on:
   schedule:
     - cron: "0 2 * * 1"   # 每周一 02:00 UTC
@@ -11,6 +13,7 @@ permissions:
 
 jobs:
   refresh:
+    name: 刷新角色表
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,24 +23,23 @@ jobs:
       - run: python -m pip install -e ".[lite]"
       - name: 抓取最新角色表
         run: python scripts/refresh_data.py
-      - name: 有变化就开 PR
+      - name: 提交变更并创建 PR
         uses: peter-evans/create-pull-request@v6
         with:
-          # 用仓库主自己的身份，避免出现 github-actions[bot] 贡献者
           author: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
           committer: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
           commit-message: "chore(data): 刷新角色表"
           title: "chore(data): 刷新角色表"
           body: |
-            由 `refresh-data` 工作流自动生成：重新抓取 https://pcrdfans.com/units，
-            合并 `aliases_extra.json` 里的补充别称。
+            本 PR 由 `Data refresh` 工作流生成：重新抓取 https://pcrdfans.com/units 并与
+            `aliases_extra.json` 合并。
 
-            合并前建议看一下 diff 里的新增角色，确认中文名没串。
+            合并前请检查 diff 中的新增角色与中文名是否正确。
           branch: chore/refresh-characters
           delete-branch: true
 
   live-check:
-    # 真实网络冒烟：允许失败，只在失败时发通知
+    name: 外部接口巡检
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -46,7 +48,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e ".[full]"
-      - name: 真实接口可达性
+      - name: 接口可达性检查
         run: |
           python - <<'PY'
           import asyncio
@@ -57,7 +59,7 @@ jobs:
               try:
                   entries = await client.search([100701, 107101, 100501], allow_missing_auth=True)
               except arena_api.ArenaError as exc:
-                  print(f"接口暂时不可用（不算失败）：{exc.kind}: {exc}")
+                  print(f"接口暂不可用（不计为失败）：{exc.kind}: {exc}")
                   return
               print(f"返回 {len(entries)} 支队伍")
 

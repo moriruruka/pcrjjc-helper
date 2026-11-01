@@ -122,33 +122,34 @@ pcrjjc doctor                           # 看依赖 / 字体 / 数据
 | `PCRJJC_AUTH_KEY` | 作业网 API key（有就用直连接口） |
 | `PCRJJC_BROWSER_ENDPOINT` | 本机浏览器转发服务地址 |
 
-## 查询慢怎么办（三档方案）
+## 性能与加速
 
-实测：配置了本机浏览器服务时，一条查询 **3 秒**出卡片；首次识别截图会额外多花 1–2 分钟建头像特征缓存，之后就快了。
+配置浏览器服务后，单次查询约 3 秒返回卡片；首次截图识别需额外约 1–2 分钟建立头像特征缓存，此后恢复正常。
 
-1. **有作业网 API key** → 面板填 `auth_key`，走直连接口，通常 1–3 秒。
-2. **起本机浏览器服务**（推荐，无需 key）：
+1. **配置作业网 API key**：在配置项中填写 `auth_key`，走直连接口，通常 1–3 秒。
+2. **运行本机浏览器服务**（无需 key）：
    ```bash
    pip install playwright
-   python -m playwright install msedge        # 或用系统自带 Edge
-   python scripts/browser_bridge.py --login   # 首次：弹一次窗口登录作业网，登录完自动关
-   python scripts/browser_bridge.py           # 之后：headless 常驻，窗口不可见
+   python -m playwright install msedge        # 也可使用系统自带 Edge
+   python scripts/browser_bridge.py --login   # 首次登录作业网，仅此次显示窗口
+   python scripts/browser_bridge.py           # 之后以 headless 模式常驻
    ```
-   然后把面板里的 `browser_endpoint` 填成 `http://127.0.0.1:6191`。
-   它做的事是「用真实浏览器打开作业网自己的页面，把页面发出的查询响应截下来」，签名与 Cookie 都由浏览器处理，所以不会被当成脚本。
-3. **什么都不配**：`browser_endpoint` 留空、`auth_key` 留空 → 只走匿名接口，失败就提示「稍后再查」。最稳但最慢（每次要等接口超时）。
+   随后将 `browser_endpoint` 设为 `http://127.0.0.1:6191`。
+   该服务以真实浏览器打开作业网页面，并截取页面自身发出的查询响应；签名与 Cookie 由页面处理。
+3. **不配置加速**：`browser_endpoint` 与 `auth_key` 均留空时仅使用匿名接口，失败时提示稍后重试，单次耗时取决于接口超时。
 
-要点：
-- 浏览器服务**默认 headless**，不会弹空白窗口；只有 `--login` 那一次会开窗口，登录完成后自动关闭。
-- 首次截图识别会建缓存（`avatar_prints.json`），773 张头像约 1–2 分钟，只付一次。
+补充说明：
+
+- 浏览器服务默认以 headless 模式运行，不显示窗口；仅 `--login` 会临时打开窗口，登录完成后自动关闭。
+- 首次截图识别会生成 `avatar_prints.json`，773 张头像约需 1–2 分钟，仅此一次。
 
 ## 关于作业网风控
 
-pcrdfans 的匿名接口有时会返回 `103 / 601`（未登录或触发风控）。两条路：
+pcrdfans 的匿名接口可能返回 `103 / 601`（未登录或触发风控）。可选处理方式：
 
-1. **等一等再查**（最常见）。插件对 429/Cloudflare 会给出明确提示。
-2. **自备浏览器转发服务**：在本机跑一个「用真实浏览器打开作业网、把页面发出的请求截下来」的小服务，监听 `127.0.0.1`，然后把 `browser_endpoint` 指向它（例如 `http://127.0.0.1:6191`）。这属于进阶用法，需要自己装 Playwright；仓库不提供账号与 Cookie。
+1. **稍后再试**：最常见的情况，插件对 429/Cloudflare 会给出明确提示。
+2. **自备浏览器转发服务**：在本机运行一个以真实浏览器打开作业网、截取页面请求的服务，监听 `127.0.0.1`，再将 `browser_endpoint` 指向它（例如 `http://127.0.0.1:6191`）。该方式需要自行安装 Playwright；仓库不提供账号与 Cookie。
 
-## 追问状态在哪
+## 追问状态的存放位置
 
 追问状态只存在内存里，机器人重启即失效（已经发出去的卡片不受影响）。单会话同时只有一条追问，多条会覆盖旧的。
