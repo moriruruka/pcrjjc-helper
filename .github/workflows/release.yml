@@ -1,9 +1,12 @@
-name: Release build
+﻿name: Release build
 
 run-name: release-build · ${{ github.ref_name }}
 
 # 仅构建发行包，不创建 Release。
 # Release 由维护者在网页或通过 API 以本人账号创建，发布记录归属于维护者本人。
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
 
