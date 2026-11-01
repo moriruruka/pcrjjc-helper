@@ -1,7 +1,9 @@
 name: Data refresh
 
-# 周期性核对角色表：抓取 pcrdfans /units，合并本地别称，有差异时开出 PR 供审阅。
-# 提交身份固定为仓库维护者，避免出现 github-actions[bot] 署名。
+run-name: data-refresh · ${{ github.ref_name }}
+
+# 周期性核对角色表：抓取 pcrdfans /units，合并本地别称，有差异时创建 PR 供审阅。
+# 提交身份固定为仓库维护者。
 on:
   schedule:
     - cron: "0 2 * * 1"   # 每周一 02:00 UTC
@@ -13,33 +15,34 @@ permissions:
 
 jobs:
   refresh:
-    name: 刷新角色表
+    name: refresh
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install -e ".[lite]"
-      - name: 抓取最新角色表
+      - name: Install package
+        run: python -m pip install -e ".[lite]"
+      - name: Fetch latest character table
         run: python scripts/refresh_data.py
-      - name: 提交变更并创建 PR
+      - name: Commit and open pull request
         uses: peter-evans/create-pull-request@v6
         with:
           author: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
           committer: "Aria_Luna <80839392+moriruruka@users.noreply.github.com>"
-          commit-message: "chore(data): 刷新角色表"
-          title: "chore(data): 刷新角色表"
+          commit-message: "chore(data): refresh character table"
+          title: "chore(data): refresh character table"
           body: |
-            本 PR 由 `Data refresh` 工作流生成：重新抓取 https://pcrdfans.com/units 并与
-            `aliases_extra.json` 合并。
+            由 `Data refresh` 工作流生成：重新抓取 https://pcrdfans.com/units，
+            并与 `aliases_extra.json` 合并。
 
-            合并前请检查 diff 中的新增角色与中文名是否正确。
+            合并前请检查新增角色与对应中文名。
           branch: chore/refresh-characters
           delete-branch: true
 
   live-check:
-    name: 外部接口巡检
+    name: live-check
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -47,11 +50,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install -e ".[full]"
-      - name: 接口可达性检查
+      - name: Install package
+        run: python -m pip install -e ".[full]"
+      - name: Query upstream API
         run: |
           python - <<'PY'
           import asyncio
+
           from pcrjjc import arena_api
 
           async def main():
@@ -59,9 +64,9 @@ jobs:
               try:
                   entries = await client.search([100701, 107101, 100501], allow_missing_auth=True)
               except arena_api.ArenaError as exc:
-                  print(f"接口暂不可用（不计为失败）：{exc.kind}: {exc}")
+                  print(f"upstream unavailable: {exc.kind}: {exc}")
                   return
-              print(f"返回 {len(entries)} 支队伍")
+              print(f"entries: {len(entries)}")
 
           asyncio.run(main())
           PY
