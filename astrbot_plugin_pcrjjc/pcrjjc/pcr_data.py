@@ -371,6 +371,65 @@ def write_characters_from_units(
     return payload
 
 
+def merge_previous_names(
+    payload: dict[str, Any],
+    previous: dict[str, Any] | None,
+) -> int:
+    """把上一版 characters.json 里的中文名与别称补回新版。
+
+    为什么需要：/units 只给 id 与日文名，中文名是从 biligame 抓的。抓取失败
+    （断网、站点抽风、模块缺失）时如果直接覆盖写，中文名就会整片退化成日文名。
+    这里做「只补不删」：新版缺中文名、旧版有，就把旧的搬回来；别称取并集。
+
+    返回补回中文名的条数。
+    """
+
+    if not previous:
+        return 0
+    old_chars = previous.get("characters")
+    new_chars = payload.get("characters")
+    if not isinstance(old_chars, list) or not isinstance(new_chars, list):
+        return 0
+    old_by_id: dict[int, dict[str, Any]] = {}
+    for item in old_chars:
+        if isinstance(item, dict) and item.get("id") is not None:
+            old_by_id[int(item["id"])] = item
+
+    restored = 0
+    for item in new_chars:
+        if not isinstance(item, dict):
+            continue
+        try:
+            prev = old_by_id.get(int(item.get("id")))
+        except (TypeError, ValueError):
+            continue
+        if not prev:
+            continue
+        if item.get("name_lang") != "zh" and prev.get("name_lang") == "zh" and prev.get("name"):
+            item["name"] = prev["name"]
+            item["name_lang"] = "zh"
+            item["name_source"] = prev.get("name_source") or "previous"
+            restored += 1
+        aliases = [str(a) for a in (item.get("aliases") or []) if str(a).strip()]
+        seen = set(aliases)
+        for alias in prev.get("aliases") or []:
+            text = str(alias).strip()
+            if text and text not in seen:
+                aliases.append(text)
+                seen.add(text)
+        if aliases:
+            item["aliases"] = aliases
+        all_names = [str(n) for n in (item.get("all_names") or []) if str(n).strip()]
+        if not all_names:
+            names = [item.get("name") or "", item.get("name_jp") or ""] + aliases
+            item["all_names"] = [n for n in dict.fromkeys(names) if n]
+    stats = payload.get("stats")
+    if isinstance(stats, dict) and new_chars:
+        stats["zh"] = sum(1 for c in new_chars if isinstance(c, dict) and c.get("name_lang") == "zh")
+        stats["ja_only"] = sum(1 for c in new_chars if isinstance(c, dict) and c.get("name_lang") != "zh")
+    return restored
+
+
 def load_characters(path: str | Path) -> dict[str, Any] | None:
     """读取 characters.json；文件缺失或损坏时返回 None。"""
 

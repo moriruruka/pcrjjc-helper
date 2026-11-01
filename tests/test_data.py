@@ -78,3 +78,39 @@ def test_load_characters_returns_none_for_broken_json(tmp_path: Path):
     bad = tmp_path / "bad.json"
     bad.write_text("{not json", encoding="utf-8")
     assert pcr_data.load_characters(bad) is None
+
+
+def test_merge_previous_names_restores_chinese():
+    previous = {
+        "characters": [
+            {"id": 100701, "name": "宫子", "name_lang": "zh", "aliases": ["布丁"], "name_source": "wiki"},
+        ]
+    }
+    fresh = {
+        "characters": [
+            {"id": 100701, "name": "ミヤコ", "name_jp": "ミヤコ", "name_lang": "ja", "aliases": []},
+        ],
+        "stats": {},
+    }
+    restored = pcr_data.merge_previous_names(fresh, previous)
+    assert restored == 1
+    char = fresh["characters"][0]
+    assert char["name"] == "宫子"
+    assert char["name_lang"] == "zh"
+    assert "布丁" in char["aliases"]
+    assert char["all_names"]
+
+
+def test_merge_previous_names_keeps_new_chinese():
+    previous = {"characters": [{"id": 100701, "name": "旧名", "name_lang": "zh"}]}
+    fresh = {
+        "characters": [{"id": 100701, "name": "宫子", "name_lang": "zh", "aliases": ["布丁"]}],
+        "stats": {},
+    }
+    assert pcr_data.merge_previous_names(fresh, previous) == 0
+    assert fresh["characters"][0]["name"] == "宫子"
+
+
+def test_merge_previous_names_without_previous():
+    fresh = {"characters": [{"id": 100701, "name": "ミヤコ", "name_lang": "ja"}]}
+    assert pcr_data.merge_previous_names(fresh, None) == 0

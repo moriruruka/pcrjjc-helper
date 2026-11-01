@@ -34,6 +34,7 @@ from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 from PIL import Image, ImageOps
 
 from .pcrjjc import dialog as pcr_dialog
+from .pcrjjc import images as pcr_images
 from .pcrjjc import pcr_data
 from .pcrjjc.arena_api import (
     AUTH_HELP,
@@ -642,12 +643,18 @@ class PCRBot(Star):
         payload = pcr_data.load_characters(self.characters_path)
         units = pcr_data.load_units_cache(self.units_path)
         if units is not None and not self._characters_current(payload):
+            previous_payload = payload
             payload = pcr_data.write_characters_from_units(
                 self.characters_path,
                 units,
                 aliases_extra=pcr_data.load_aliases_extra(self.aliases_extra_path),
                 updated_at=_now_text(),
             )
+            if payload is not None and previous_payload:
+                restored = pcr_data.merge_previous_names(payload, previous_payload)
+                if restored:
+                    pcr_data._write_json(self.characters_path, payload)  # noqa: SLF001
+                    logger.info("PCRBot 初始化时保留了 %d 个旧版中文名", restored)
         elif payload is None:
             if seed:
                 payload = pcr_data.write_characters(self.characters_path, _now_text())
@@ -989,12 +996,18 @@ class PCRBot(Star):
                         + _short(str(units_payload.get("cache_error") or ""), 100)
                         + "）"
                     )
+                previous_payload = pcr_data.load_characters(self.characters_path)
                 characters = pcr_data.write_characters_from_units(
                     self.characters_path,
                     units_payload,
                     aliases_extra=pcr_data.load_aliases_extra(self.aliases_extra_path),
                     updated_at=_now_text(),
                 )
+                if characters is not None and previous_payload:
+                    restored = pcr_data.merge_previous_names(characters, previous_payload)
+                    if restored:
+                        pcr_data._write_json(self.characters_path, characters)  # noqa: SLF001
+                        logger.info("PCRBot 更新时保留了 %d 个旧版中文名", restored)
             except Exception as exc:  # noqa: BLE001
                 units_error = f"角色数据更新失败：{_short(exc, 140)}"
                 logger.warning(f"PCRBot {units_error}")
@@ -1331,6 +1344,10 @@ class PCRBot(Star):
 
         images = list(_iter_images(event.get_messages(), include_reply=False))
         if images and self._cfg_bool("enable_image", True):
+            local = getattr(images[0], "path", None)
+            if local and Path(local).is_file() and pcr_images.reject_reason(local):
+                # 聊天里带着表情包又提了关键词：不是查作业，保持安静。
+                return
             result = await self._handle_image(event, images[0])
             async for item in self._deliver_image(event, result):
                 yield item
@@ -1719,6 +1736,14 @@ class PCRBot(Star):
         """确定用户要排除谁：截图优先，其次名字/位置号。返回 (id, 提示)。"""
 
         if images:
+            local = getattr(images[0], "path", None)
+            if local and Path(local).is_file():
+                reason = pcr_images.reject_reason(local)
+                if reason:
+                    return None, (
+                        f"{reason}，看着不像竞技场头像。"
+                        "说名字（布丁）、说位置（3号位），或发一张单个角色的头像截图。"
+                    )
             recognition, error = await self._recognize_component(event, images[0])
             if error:
                 return None, f"这张图没认出来：{error}\n也可以直接说角色名。"
@@ -2283,6 +2308,14 @@ class PCRBot(Star):
         多队（战斗结果 / 编成截图）时按队各自查作业，回复里由调用方标「第几队」。
         """
 
+        local = getattr(component, "path", None)
+        if local and Path(local).is_file():
+            reason = pcr_images.reject_reason(local)
+            if reason:
+                return ImageResult(
+                    recognition=None,
+                    error=f"{reason}，没当竞技场截图处理。要查作业请发一张 5 个并排头像的截图，或直接说角色名。",
+                )
         recognition, error = await self._recognize_component(event, component)
         if error:
             return ImageResult(recognition=recognition, error=error)
