@@ -70,7 +70,7 @@
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
-| `region` | `1` | 1 日服 / 2 台服 / 3 国服（国服作业可能较少） |
+| `region` | `1` | 1 国服 / 2 国际服 / 3 日服；0 = 全部（接口按 1 发） |
 | `max_results` | `5` | 每次出卡片最多几支队伍 |
 | `sort_mode` | `ratio` | `ratio` 赞踩比 / `time` 最新 / `likes` 赞数 |
 | `show_names` | `slang` | `slang` 黑话 / `official` 官译 / `none` 不显示 |

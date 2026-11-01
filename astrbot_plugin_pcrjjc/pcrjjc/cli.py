@@ -392,7 +392,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("arena", parents=[common], help="按角色名查作业")
     p.add_argument("--names", "-n", default="", help="逗号/空格分隔的角色名，如 布丁,克总")
     p.add_argument("--ids", default="", help="直接给 6 位 id（逗号分隔）")
-    p.add_argument("--region", default=os.environ.get("PCRJJC_REGION", "1"), help="1=日服 2=台服 3=国服")
+    p.add_argument("--region", default=os.environ.get("PCRJJC_REGION", "1"), help="1=国服 2=国际服 3=日服 0=全部")
     p.add_argument("--timeout", default=os.environ.get("PCRJJC_TIMEOUT", "15"), help="请求超时（秒）")
     p.add_argument("--browser", default="", help="浏览器服务地址，如 http://127.0.0.1:6191")
     p.add_argument("--limit", type=int, default=10, help="最多打印几支队伍")

@@ -1,5 +1,5 @@
 name: astrbot_plugin_pcrjjc
-display_name: pcrjjc 公主连结作业
+display_name: 公主连结竞技场作业自助查询
 short_desc: 公主连结竞技场作业查询：文字或截图识别防守阵容，回图片作业卡片。
 desc: >-
   支持角色原名、日文名、英文名、B 服译名和黑话别称的文字查询；也支持从竞技场截图里识别并排头像

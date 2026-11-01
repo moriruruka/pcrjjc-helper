@@ -245,9 +245,9 @@ def _short(text: Any, limit: int = 160) -> str:
 
 @register(
     PLUGIN_NAME,
-    "PCRBot",
+    "公主连结竞技场作业自助查询",
     "公主连结竞技场作业查询：文字 / 图片 → 作业队伍，支持别称与本地缓存。",
-    "v1.0.0",
+    "v0.1.0",
 )
 class PCRBot(Star):
     def __init__(self, context: Context, config: AstrBotConfig | dict | None = None):
@@ -1008,13 +1008,12 @@ class PCRBot(Star):
                     )
             wiki_note = ""
             try:
-                try:
-                    from . import pcr_wiki  # AstrBot 以包的形式加载插件
-                except ImportError:
-                    import pcr_wiki
+                from .pcrjjc import pcr_wiki
 
                 try:
-                    wiki_units = await pcr_wiki.fetch_names(force=False)
+                    wiki_units = await pcr_wiki.fetch_names(
+                        force=False, cache_path=self.data_dir / "wiki_names.json"
+                    )
                 except TypeError:
                     wiki_units = await pcr_wiki.fetch_names()
                 chars_list = (

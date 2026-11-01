@@ -46,7 +46,11 @@ HEADERS = {
 }
 
 PLUGIN_DIR = Path(__file__).resolve().parent
-DATA_DIR = PLUGIN_DIR.parents[1] / "plugin_data" / "pcrbot"
+# 数据目录交给 paths 统一决定（环境变量 > 包内种子 > 用户目录），
+# 不再假设插件被放在 <AstrBot>/data/plugins/<name> 下。
+from . import paths as _paths  # noqa: E402
+
+DATA_DIR = _paths.resolve_data_dir()
 CACHE_PATH = DATA_DIR / "wiki_names.json"
 CHARACTERS_PATH = DATA_DIR / "characters.json"
 
