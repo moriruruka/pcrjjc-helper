@@ -113,14 +113,6 @@ def push_with_fallback(env: dict[str, str]) -> tuple[int, str]:
 
 
 def commit_and_push(push: bool) -> int:
-    code, diff = _git("status", "--porcelain", "--", *TRACKED_FILES)
-    if code != 0:
-        print(diff)
-        return 1
-    if not diff:
-        print("角色表没有变化，跳过提交")
-        return 0
-
     env = dict(os.environ)
     env.update(
         GIT_AUTHOR_NAME=AUTHOR_NAME,
@@ -128,6 +120,20 @@ def commit_and_push(push: bool) -> int:
         GIT_COMMITTER_NAME=AUTHOR_NAME,
         GIT_COMMITTER_EMAIL=AUTHOR_EMAIL,
     )
+
+    code, diff = _git("status", "--porcelain", "--", *TRACKED_FILES)
+    if code != 0:
+        print(diff)
+        return 1
+    if not diff:
+        print("角色表没有变化，跳过提交")
+        if push:
+            code, out = push_with_fallback(env)
+            print(out)
+            if code != 0:
+                return 1
+        return 0
+
     code, out = _git("add", "--", *TRACKED_FILES, env=env)
     if code != 0:
         print(out)
