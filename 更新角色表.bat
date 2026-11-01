@@ -1,10 +1,9 @@
 @echo off
-chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
 
-rem 一键更新角色表：抓取 /units、合并中文名、用维护者身份提交并推送。
-rem 解释器查找顺序：仓库内 .venv → 环境变量 PCRJJC_PYTHON → py -3 → python
+rem One-click refresh of the character table, committed with the maintainer identity.
+rem Interpreter lookup: repo .venv -> PCRJJC_PYTHON -> py -3 -> python
 
 set "PYCMD="
 if exist "%~dp0.venv\Scripts\python.exe" set "PYCMD=%~dp0.venv\Scripts\python.exe"
@@ -15,29 +14,29 @@ if not defined PYCMD (
 )
 if not defined PYCMD set "PYCMD=python"
 
-echo [1/3] 检查解释器：%PYCMD%
-%PYCMD% -c "import aiohttp, PIL" >nul 2>nul
+echo [1/3] interpreter: %PYCMD%
+"%PYCMD%" -c "import aiohttp, PIL" >nul 2>nul
 if errorlevel 1 (
     echo.
-    echo 当前解释器缺少依赖 aiohttp / Pillow。
-    echo 请在仓库根目录执行一次：%PYCMD% -m pip install -e .
-    echo 或设置环境变量 PCRJJC_PYTHON 指向已装好依赖的 python.exe。
+    echo Missing dependencies aiohttp / Pillow for this interpreter.
+    echo Run once in the repo root:  "%PYCMD%" -m pip install -e .
+    echo Or set PCRJJC_PYTHON to a python.exe that already has them.
     echo.
     pause
     exit /b 1
 )
 
-echo [2/3] 更新角色表（抓取 + 合并中文名）……
-%PYCMD% scripts\update_dataset.py --commit --push
+echo [2/3] refreshing characters.json and pushing...
+"%PYCMD%" scripts\update_dataset.py --commit --push
 if errorlevel 1 (
     echo.
-    echo 更新失败，请查看上面的输出。
+    echo Update failed, see the output above.
     pause
     exit /b 1
 )
 
 echo.
-echo [3/3] 最近一次提交：
+echo [3/3] latest commit:
 git log -1 --format="%%h %%an <%%ae>  %%s"
 echo.
 pause

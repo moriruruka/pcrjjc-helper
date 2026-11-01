@@ -96,6 +96,22 @@ def download_avatars() -> None:
         print("下载头像失败，可用 `pcrjjc avatars` 重试")
 
 
+CANDIDATE_IPS = ("20.27.177.113", "140.82.113.3", "140.82.114.3", "4.237.22.34")
+
+
+def push_with_fallback(env: dict[str, str]) -> tuple[int, str]:
+    """推送；直连失败时按候选 IP 重试（仅固定 github.com 的解析结果，保留证书校验）。"""
+
+    code, out = _git("push", "origin", "HEAD", env=env)
+    if code == 0:
+        return code, out
+    for ip in CANDIDATE_IPS:
+        code, out = _git("-c", f"http.curloptResolve=github.com:443:{ip}", "push", "origin", "HEAD", env=env)
+        if code == 0:
+            return code, out
+    return code, out
+
+
 def commit_and_push(push: bool) -> int:
     code, diff = _git("status", "--porcelain", "--", *TRACKED_FILES)
     if code != 0:
@@ -124,7 +140,7 @@ def commit_and_push(push: bool) -> int:
         return 1
 
     if push:
-        code, out = _git("push", "origin", "HEAD", env=env)
+        code, out = push_with_fallback(env)
         print(out)
         if code != 0:
             return 1
