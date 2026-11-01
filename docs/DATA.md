@@ -87,14 +87,14 @@ AstrBot 插件里优先用 AstrBot 的插件数据目录（`data/plugin_data/pcr
 
 ## 更新角色表
 
-有三条路径，按使用场景选择。
+有两种路径，按使用场景选择。
 
 ### 1. 插件运行期自动更新（默认）
 
 插件内 `auto_update_days`（默认 7 天）到期后自行抓取 `/units`、合并 wiki 中文名并按需补头像。
-这是插件自身的行为，与仓库 CI 无关。
+这是插件自身的行为，与仓库无关。
 
-### 2. 本地手动更新（发布前推荐）
+### 2. 本地手动更新（仓库数据发布前使用）
 
 ```bash
 python scripts/update_dataset.py                  # 只刷新，写入 characters.json
@@ -106,10 +106,8 @@ python scripts/update_dataset.py --avatars        # 顺带下载头像到数据�
 提交的作者与提交者固定为 `Aria_Luna <80839392+moriruruka@users.noreply.github.com>`，
 不受本机 `git config` 影响。
 
-### 3. GitHub Actions 周期刷新
-
-`Data refresh` 工作流每周一 02:00 UTC 抓取一次，与 `aliases_extra.json` 合并，
-存在差异时创建 PR（不直接修改主分支），由维护者审阅后合并。该工作流的提交身份同样固定为维护者。
+仓库不设自动写数据的 CI：所有 `characters.json` 变更都由上述命令在本地完成，
+以保证提交归属与内容审阅。
 
 ### 手工命令
 
