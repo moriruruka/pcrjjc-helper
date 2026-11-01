@@ -1,0 +1,25 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# 数据：角色表随包发布，头像与运行缓存不入库
+astrbot_plugin_pcrjjc/pcrjjc/data/avatars/
+astrbot_plugin_pcrjjc/pcrjjc/data/arena_cache.json
+astrbot_plugin_pcrjjc/pcrjjc/data/units_site.json
+astrbot_plugin_pcrjjc/pcrjjc/data/meta.json
+astrbot_plugin_pcrjjc/pcrjjc/data/stats.json
+astrbot_plugin_pcrjjc/pcrjjc/data/avatar_prints.json
+
+# 本机配置与凭证
+config.json
+*credentials*.json
+.env

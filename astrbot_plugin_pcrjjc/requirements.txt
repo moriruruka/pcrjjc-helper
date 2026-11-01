@@ -1,0 +1,6 @@
+# 文字查询 / 作业卡片
+Pillow>=10.0
+aiohttp>=3.9
+# 截图识别（可选，约 40MB；不想装可以删掉这两行，插件会自动降级成纯文字）
+numpy>=1.24
+opencv-python-headless>=4.8

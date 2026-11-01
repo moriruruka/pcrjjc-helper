@@ -1,0 +1,43 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - name: 附加插件目录 zip（给不想用 pip 的人直接下载）
+        run: |
+          cd astrbot_plugin_pcrjjc && zip -r ../pcrjjc-astrbot-plugin.zip . -x "*/__pycache__/*"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            pcrjjc-astrbot-plugin.zip
+          generate_release_notes: true
+          body: |
+            ## 安装
+
+            ```bash
+            pip install pcrjjc-helper[full]
+            pcrjjc selftest
+            pcrjjc avatars
+            ```
+
+            AstrBot 用户：下载 `pcrjjc-astrbot-plugin.zip` 解压到 `data/plugins/astrbot_plugin_pcrjjc`，再装 `requirements.txt`。
+
+            头像体积较大（约 15 MB），默认不随 Release 提供；用 `pcrjjc avatars` 从 CDN 拉取即可。

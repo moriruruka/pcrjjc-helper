@@ -1,0 +1,129 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check . || true
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: python -m pip install -e ".[full,dev]"
+      - run: python -m pytest -q
+      - name: selftest (CLI)
+        run: python -m pcrjjc selftest
+
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 校验角色表
+        run: |
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          payload = json.loads(Path("astrbot_plugin_pcrjjc/pcrjjc/data/characters.json").read_text(encoding="utf-8"))
+          chars = payload.get("characters") or []
+          assert len(chars) > 300, f"角色太少：{len(chars)}"
+          ids = [c["id"] for c in chars]
+          assert len(set(ids)) == len(ids), "id 有重复"
+          assert all(isinstance(i, int) and 100000 <= i <= 999999 for i in ids), "id 不是 6 位"
+          for c in chars:
+              assert (c.get("name") or c.get("name_jp") or "").strip(), f"角色没名字：{c}"
+              assert isinstance(c.get("aliases") or [], list)
+          print(f"OK: {len(chars)} 个角色")
+          PY
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  install-smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 干净环境装 wheel 并自检
+        run: |
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl "numpy>=1.24" "opencv-python-headless>=4.8"
+          /tmp/venv/bin/pcrjjc selftest
+          /tmp/venv/bin/pcrjjc doctor
+
+  offline-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[full]"
+      - name: 合成素材 → 识别 → 卡片
+        run: |
+          python scripts/make_fixtures.py --out /tmp/fx
+          python -m pcrjjc recognize -i /tmp/fx/screenshot.png --avatars /tmp/fx/avatars
+      - name: 假后端下查一次作业（不发真实网络请求）
+        run: |
+          python - <<'PY'
+          import asyncio, json
+          from pathlib import Path
+          from pcrjjc import arena_api
+
+          payload = json.loads(Path("tests/fixtures/arena_payload.json").read_text(encoding="utf-8"))
+          entries = arena_api.normalize_result(payload["data"]["data"])
+          assert len(entries) == 2
+          assert entries[0]["up"] == 12
+          print("offline arena parse OK")
+          PY

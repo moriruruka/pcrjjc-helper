@@ -1,0 +1,18 @@
+name: astrbot_plugin_pcrjjc
+display_name: pcrjjc 公主连结作业
+short_desc: 公主连结竞技场作业查询：文字或截图识别防守阵容，回图片作业卡片。
+desc: >-
+  支持角色原名、日文名、英文名、B 服译名和黑话别称的文字查询；也支持从竞技场截图里识别并排头像
+  （最多 5 个）后查询作业。角色表以 pcrdfans /units 为权威来源，头像按需从 CDN 下载；
+  查询结果渲染为图片卡片，支持赞踩比 / 时间 / 命中数排序与三种名字显示模式。
+  查不到作业时可以进入「排除一个角色 / 替换一个角色」的追问流程，由用户回 1 / 2 选择。
+repo: https://github.com/moriruruka/pcrjjc-helper
+version: v0.1.0
+author: pcrjjc-helper contributors
+astrbot_version: ">=4.16,<5"
+support_platforms:
+  - aiocqhttp
+  - qq_official
+  - telegram
+  - lark
+  - wecom

@@ -1,0 +1,62 @@
+name: refresh-data
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"   # 每周一 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[lite]"
+      - name: 抓取最新角色表
+        run: python scripts/refresh_data.py
+      - name: 有变化就开 PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(data): 刷新角色表"
+          title: "chore(data): 刷新角色表"
+          body: |
+            由 `refresh-data` 工作流自动生成：重新抓取 https://pcrdfans.com/units，
+            合并 `aliases_extra.json` 里的补充别称。
+
+            合并前建议看一下 diff 里的新增角色，确认中文名没串。
+          branch: chore/refresh-characters
+          delete-branch: true
+
+  live-check:
+    # 真实网络冒烟：允许失败，只在失败时发通知
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e ".[full]"
+      - name: 真实接口可达性
+        run: |
+          python - <<'PY'
+          import asyncio
+          from pcrjjc import arena_api
+
+          async def main():
+              client = arena_api.ArenaClient(region=1, timeout=20)
+              try:
+                  entries = await client.search([100701, 107101, 100501], allow_missing_auth=True)
+              except arena_api.ArenaError as exc:
+                  print(f"接口暂时不可用（不算失败）：{exc.kind}: {exc}")
+                  return
+              print(f"返回 {len(entries)} 支队伍")
+
+          asyncio.run(main())
+          PY

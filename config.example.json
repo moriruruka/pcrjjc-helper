@@ -1,0 +1,28 @@
+{
+  "region": 1,
+  "max_results": 5,
+  "sort_mode": "ratio",
+  "show_names": "slang",
+  "use_ai_names": true,
+  "show_likes": true,
+  "show_time": true,
+  "keywords": [
+    "作业"
+  ],
+  "text_mode": false,
+  "card_max_items": 8,
+  "enable_image": true,
+  "image_auto": true,
+  "image_threshold": 0.7,
+  "icon_source": "https://redive.estertion.win/icon/unit/",
+  "auto_update_days": 7,
+  "request_timeout": 15,
+  "allow_group": true,
+  "dialog_timeout_min": 2,
+  "dialog_step_timeout_min": 2,
+  "dialog_max_rounds": 6,
+  "dialog_active_minutes": 10,
+  "browser_endpoint": "",
+  "auth_key": "",
+  "use_clip": false
+}
