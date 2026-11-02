@@ -118,3 +118,14 @@ pcrjjc refresh --url ...  # 换镜像/代理
 
 刷新会保留 `aliases_extra.json` 里的补充别称。AstrBot 插件里对应 `pcr 更新`。
 
+## 数据来源与致谢
+
+| 数据 | 来源 | 说明 |
+| --- | --- | --- |
+| 单位表 / 作业数据 | [pcrdfans.com](https://pcrdfans.com) | 作者 Peter Li，[@peterli110](https://github.com/peterli110)；前端源码开源于 [peterli110/pcrdfans.com](https://github.com/peterli110/pcrdfans.com) |
+| 中文名与别称 | [biligame wiki](https://wiki.biligame.com/pcr/) | 由 `pcr_wiki` 抓取，只补中文名，不覆盖已有译名 |
+| 头像 | `https://redive.estertion.win/icon/unit/` | 由 [esterTion](https://github.com/esterTion/redive_master_db_diff) 维护 |
+| 解包的游戏数据 | [esterTion/redive_master_db_diff](https://github.com/esterTion/redive_master_db_diff) | 头像 id 与角色 id 的映射依据 |
+
+本项目只调用上述服务的公开页面与接口，不打包其数据以外的任何代码；
+角色名与立绘版权归 Cygames, Inc. 所有。

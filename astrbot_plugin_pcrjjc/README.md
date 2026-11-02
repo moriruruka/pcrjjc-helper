@@ -73,6 +73,15 @@
 `Pillow`、`aiohttp` 必需；`numpy` + `opencv-python-headless` 用于截图识别（约 40 MB）。
 未安装时仍可使用文字查询，发送截图会提示安装依赖。识别完全在本地完成，不需要任何模型。
 
+## 致谢
+
+- 作业数据与查询服务来自 [pcrdfans.com](https://pcrdfans.com)，作者 Peter Li
+  ([@peterli110](https://github.com/peterli110))，站点前端源码开源在
+  [peterli110/pcrdfans.com](https://github.com/peterli110/pcrdfans.com)。
+- 头像与解包数据来自 [esterTion](https://github.com/esterTion/redive_master_db_diff)
+  （CDN：`redive.estertion.win`）。
+- 插件运行于 [AstrBot](https://github.com/AstrBotDevs/AstrBot)。
+
 ## 仓库
 
 完整说明、安装方式、架构与排障：<https://github.com/moriruruka/pcrjjc-helper>
